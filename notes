@@ -1,0 +1,99 @@
+Cross-Platform Development: Libraries vs. Frameworks
+
+(Explanation for macOS, Linux, and Windows)
+1. Libraries
+
+    Definition: Precompiled code collections (functions, classes) that programs link to.
+
+    File Formats:
+
+        Linux: .a (static), .so (dynamic)
+
+        Windows: .lib (static), .dll (dynamic)
+
+        macOS: .a (static), .dylib (dynamic)
+
+    Usage:
+    bash
+    Copy
+
+    gcc main.c -lGL -lX11  # Linux example (-l<name> syntax)
+
+2. Frameworks (macOS Only)
+
+    Definition: Bundles containing libraries, headers, docs, and resources.
+
+    Example:
+    bash
+    Copy
+
+    gcc main.c -framework Cocoa -framework OpenGL
+
+    Storage: /System/Library/Frameworks
+
+3. Key Differences Across OSes
+macOS
+
+    Uses frameworks for system APIs (e.g., Cocoa, OpenGL).
+
+    Example flags:
+    bash
+    Copy
+
+    -framework Cocoa -framework OpenGL
+
+Linux
+
+    Uses explicit libraries:
+    bash
+    Copy
+
+    -lGL -lX11 -lm -lpthread
+
+    Common libraries:
+
+        libGL (OpenGL), libX11 (X Window), libpthread (threads).
+
+Windows
+
+    Uses .dll/.lib files and Win32 APIs.
+
+    Example flags (MinGW):
+    bash
+    Copy
+
+    -lopengl32 -lgdi32
+
+4. Why Your Original Makefile Failed on Linux
+
+    Issue: -framework flags are macOS-specific.
+
+    Fix for Linux:
+    makefile
+    Copy
+
+    LDFLAGS = -lGL -lX11 -lm -lpthread -ldl -lrt  # Linux libraries
+
+5. Raylib Simplifies Cross-Platform Code
+
+    Raylib abstracts OS-specific details:
+
+        Uses X11/GLX on Linux.
+
+        Uses Cocoa/OpenGL on macOS.
+
+        Uses Win32/OpenGL on Windows.
+
+6. How to Save This Content
+
+    Copy the text above.
+
+    Open a text editor (e.g., Notepad, VS Code).
+
+    Paste and save as:
+
+        Text File: cross-platform-guide.txt
+
+        Markdown: cross-platform-guide.md
+
+        PDF: Use a word processor (e.g., Word, LibreOffice) to format and export.
