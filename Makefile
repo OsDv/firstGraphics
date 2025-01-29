@@ -1,32 +1,44 @@
+# Detect the operating system
+ifeq ($(OS),Windows_NT)
+    # Windows
+    SYSTEM = Windows
+    TARGET = app.exe
+    LDFLAGS = $(LIB_PATH)/libraylib.a -lopengl32 -lgdi32 -lwinmm
+    CLEAN_CMD = del .\$(TARGET)
+else
+    # Linux (or other Unix-like systems)
+    SYSTEM = Linux
+    TARGET = app
+    LDFLAGS = $(LIB_PATH)/libraylib.a -lGL -lm -lpthread -ldl -lrt
+    CLEAN_CMD = rm -f $(TARGET)
+endif
+
 # Compiler settings
 CC = gcc
-#FRAMEWORKS = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 
-#PATHS
+# PATHS
 RAYLIB_PATH = ../raylib
 INCLUDE_PATH = $(RAYLIB_PATH)/src
 LIB_PATH = $(RAYLIB_PATH)/src
 
-#source files
-SRC = main.c
-TARGET = app
+# Source files
+SRC = movingBall.c
 
 # Build flags
-CFLAGS = -Wall -Wextra -I$(INCLUDE_PATH)
-LDFLAGS = $(LIB_PATH)/libraylib.a -lGL -lm  -lpthread -ldl -lrt
+CFLAGS = -Wall -Wextra -I$(INCLUDE_PATH) -std=c99
 
-#default target
-
+# Default target
 all: $(TARGET)
 
-#Linking rules
+# Linking rules
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) $<  $(LDFLAGS)  -o $@
+	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
 
-#clean rule
+# Clean rule
 clean:
-	rm -f $(TARGET)
-run:
-	./$(TARGET) 2> /dev/null
+	$(CLEAN_CMD)
 
-.PHONY: all clean 
+run:
+	./$(TARGET)
+
+.PHONY: all clean run

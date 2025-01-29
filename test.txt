@@ -1,6 +1,6 @@
 # Compiler settings
 CC = gcc
-FRAMEWORKS = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+#FRAMEWORKS = -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
 
 #PATHS
 RAYLIB_PATH = ../raylib
@@ -12,8 +12,8 @@ SRC = main.c
 TARGET = app
 
 # Build flags
-CFLAGS = -Wall -Wextra -I(INCLUDE_PATH)
-LDFLAGS = $(LIB_PATH)/libraylib.a
+CFLAGS = -Wall -Wextra -I$(INCLUDE_PATH)
+LDFLAGS = $(LIB_PATH)/libraylib.a -lGL -lm  -lpthread -ldl -lrt
 
 #default target
 
@@ -21,7 +21,7 @@ all: $(TARGET)
 
 #Linking rules
 $(TARGET): $(SRC)
-	$(CC) $(FLAGS) $(FRAMEWORKS) $(LDFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $<  $(LDFLAGS)  -o $@
 
 #clean rule
 clean:
