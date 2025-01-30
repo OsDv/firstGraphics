@@ -22,7 +22,7 @@ INCLUDE_PATH = $(RAYLIB_PATH)/src
 LIB_PATH = $(RAYLIB_PATH)/src
 
 # Source files
-SRC = movingBall.c
+SRC = snack.c
 
 # Build flags
 CFLAGS = -Wall -Wextra -I$(INCLUDE_PATH) -std=c99
