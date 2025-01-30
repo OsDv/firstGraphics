@@ -19,15 +19,21 @@ typedef struct {
 	Color color;
 	Vector2 position[MAX_SNACK_SIZE];
 } Snack;
+typedef struct {
+	Vector2 position;
+	Color color;
+	bool ready;
+} SnackPoint;
 
-void updateAcceleration(Vector2 *acc);
-
+void generatePoint(SnackPoint *point);
 int main(){
     SetConfigFlags(FLAG_MSAA_4X_HINT);
 	InitWindow(SCREEN_WIDTH , SCREEN_HEIGHT , "OSIM");
 	SetTargetFPS(60);
 
     // Initialise the snack
+    SnackPoint point;
+    point.color = RED;
     Snack snack;
     snack.head = 0;
     snack.size = 1;
@@ -56,6 +62,7 @@ int main(){
 					y+=20;
 				}
 			}
+
 			// Move The Snack
 			//Update snack direction
 			if(IsKeyPressed(KEY_UP)) snack.direction='U';
@@ -91,7 +98,12 @@ int main(){
 					SNACK_THICKNESS,
 					snack.color);
 			}
-
+			if (!point.ready) generatePoint(&point);
+			DrawRectangle(point.position.x,point.position.y,20,20,point.color);
+			if(snack.position[snack.head].x==point.position.x && snack.position[snack.head].y==point.position.y){
+				point.ready = false;
+				snack.gain++;
+			}
             DrawText("Use arrow keys to move the ball", 500, 10, 20, DARKGRAY);
 			DrawFPS(10,10);
 		EndDrawing();
@@ -100,19 +112,9 @@ int main(){
 	return EXIT_SUCCESS;
 }
 
-void updateAcceleration(Vector2 *acc){
-    acc->x = 0;
-    acc->y = 0;
-    if (IsKeyDown(KEY_UP)){
-        acc->y = -ACC;
-    }
-    if (IsKeyDown(KEY_DOWN)){
-        acc->y = ACC;
-    }
-    if (IsKeyDown(KEY_LEFT)){
-        acc->x = -ACC;
-    }
-    if (IsKeyDown(KEY_RIGHT)){
-        acc->x = ACC;
-    }
+void generatePoint(SnackPoint *point){
+	point->position.x=20* GetRandomValue(1,30);
+	point->position.y= 50 + 20*GetRandomValue(0,44);
+	point->ready = true;
+
 }
