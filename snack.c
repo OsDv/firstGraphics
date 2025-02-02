@@ -12,9 +12,11 @@
 #define SNACK_THICKNESS 20
 #define MARGINE_COLOR DARKBLUE
 typedef struct {
+	Texture2D texture;
 	uint32_t head;
 	uint32_t size;
 	uint32_t gain;
+	float step;
 	uint8_t direction;// U:up , D:down , R:right , L:left
 	Color color;
 	Vector2 position[MAX_SNACK_SIZE];
@@ -25,7 +27,14 @@ typedef struct {
 	bool ready;
 } SnackPoint;
 
+/*	General functions	*/
+void startGame(Snack *snack);
 void generatePoint(SnackPoint *point);
+bool checkCollision(Snack snack);
+void moveSnack(Snack *snack);
+void updateSnackSize(Snack *snack);
+void setDirection(Snack *snack );
+
 int main(){
     SetConfigFlags(FLAG_MSAA_4X_HINT);
 	InitWindow(SCREEN_WIDTH , SCREEN_HEIGHT , "OSIM");
@@ -35,13 +44,9 @@ int main(){
     SnackPoint point;
     point.color = RED;
     Snack snack;
-    snack.head = 0;
-    snack.size = 1;
-    snack.gain=2;
-    snack.position[0]=(Vector2) {320,550};
-    snack.direction = 'U';
-    snack.color = ColorFromHSV(GetRandomValue(0,300),0.5f ,0.7f);
-    
+	snack.texture = LoadTexture("snake.png");
+    // startGame(&snack);
+    bool inGame = false;
 	float dt = 0;
     	while (!WindowShouldClose()){
 		BeginDrawing();
@@ -62,41 +67,43 @@ int main(){
 					y+=20;
 				}
 			}
+			if (inGame){
+				// Check for collision
+				if (checkCollision(snack)){
+					// inGame = false;
+					startGame(&snack);
+				} else{
+					// set snack direction
+					if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_LEFT)) snack.step = 0.2;
+					else snack.step = 0.4;
+					setDirection(&snack);
+					// move the snack
+					dt += GetFrameTime();
+					if (dt>=snack.step){
+						moveSnack(&snack);
+						dt=0;
+					}
+					// update snack size
+					if (snack.head==0){
+						updateSnackSize(&snack);
 
-			// Move The Snack
-			//Update snack direction
-			if(IsKeyPressed(KEY_UP)) snack.direction='U';
-			if(IsKeyPressed(KEY_DOWN)) snack.direction='D';
-			if(IsKeyPressed(KEY_RIGHT)) snack.direction='R';
-			if(IsKeyPressed(KEY_LEFT)) snack.direction='L';
-			if (snack.head==0){
-				for (uint32_t i =0 ; i<snack.gain;i++){
-					snack.position[snack.size] = snack.position[snack.size-1];
-					snack.size++;
+					}
+
 				}
-				snack.gain=0;
+			}	else {
+				startGame(&snack);
+				inGame = true;
+			}
 
-			}
-		dt += GetFrameTime();
-			if (dt>=0.4){
-				uint32_t tmp=snack.head;
-				snack.head = (snack.head+1) % snack.size;
-				switch (snack.direction){
-					case 'U':snack.position[snack.head] = (Vector2){snack.position[tmp].x,snack.position[tmp].y-SNACK_THICKNESS};break;
-					case 'D':snack.position[snack.head] = (Vector2){snack.position[tmp].x,snack.position[tmp].y+SNACK_THICKNESS};break;
-					case 'L':snack.position[snack.head] = (Vector2){snack.position[tmp].x-SNACK_THICKNESS,snack.position[tmp].y};break;
-					case 'R':snack.position[snack.head] = (Vector2){snack.position[tmp].x+SNACK_THICKNESS,snack.position[tmp].y};break;
-				}	
-				dt=0;
-			}
 			// Draw the snack
 			for(uint32_t i=0;i<snack.size;i++){
 				int k = (snack.head+i) % snack.size;
-				DrawRectangle(snack.position[k].x,
+				/*DrawRectangle(snack.position[k].x,
 					snack.position[k].y,
 					SNACK_THICKNESS,
 					SNACK_THICKNESS,
-					snack.color);
+					snack.color);*/
+				DrawTexture(snack.texture,snack.position[k].x,snack.position[k].y,snack.color);
 			}
 			if (!point.ready) generatePoint(&point);
 			DrawRectangle(point.position.x,point.position.y,20,20,point.color);
@@ -113,8 +120,54 @@ int main(){
 }
 
 void generatePoint(SnackPoint *point){
-	point->position.x=20* GetRandomValue(1,30);
-	point->position.y= 50 + 20*GetRandomValue(0,44);
+	point->position.x=20* GetRandomValue(1,25);
+	point->position.y= 50 + 20*GetRandomValue(0,43);
 	point->ready = true;
 
+}
+bool checkCollision(Snack snack){
+	for (uint32_t i=1;i<snack.size;i++){
+		if (snack.position[snack.head].x==snack.position[i].x && snack.position[snack.head].y==snack.position[i].y && i!=snack.head){
+			return true;
+		}
+	}
+	if (snack.position[snack.head].x<20 || snack.position[snack.head].x>SCREEN_WIDTH-380 || snack.position[snack.head].y<50 || snack.position[snack.head].y>SCREEN_HEIGHT-50){
+		return true;
+	}
+	return false;
+}
+void setDirection(Snack *snack ){
+	//Update snack direction
+	if(IsKeyPressed(KEY_UP)) snack->direction='U';
+	if(IsKeyPressed(KEY_DOWN)) snack->direction='D';
+	if(IsKeyPressed(KEY_RIGHT)) snack->direction='R';
+	if(IsKeyPressed(KEY_LEFT)) snack->direction='L';	
+}
+void startGame(Snack *snack){
+	// Initialise the snack
+    snack->head = 0;
+    snack->size = 2;
+    snack->gain=2;
+	snack->step=0.4;
+    snack->position[0]=(Vector2) {320,550};
+	snack->position[1]=(Vector2) {320,551};
+    snack->direction = 'U';
+    snack->color = ColorFromHSV(GetRandomValue(0,300),0.5f ,0.7f);
+}
+void moveSnack(Snack *snack){
+	uint32_t tmp=snack->head;
+	snack->head = (snack->head+1) % snack->size;
+	switch (snack->direction){
+		case 'U':snack->position[snack->head] = (Vector2){snack->position[tmp].x,snack->position[tmp].y-SNACK_THICKNESS};break;
+		case 'D':snack->position[snack->head] = (Vector2){snack->position[tmp].x,snack->position[tmp].y+SNACK_THICKNESS};break;
+		case 'L':snack->position[snack->head] = (Vector2){snack->position[tmp].x-SNACK_THICKNESS,snack->position[tmp].y};break;
+		case 'R':snack->position[snack->head] = (Vector2){snack->position[tmp].x+SNACK_THICKNESS,snack->position[tmp].y};break;
+	}	
+}
+void updateSnackSize(Snack *snack){
+	for (uint32_t i =0 ; i<snack->gain;i++){
+		snack->position[snack->size] = snack->position[snack->size-1];
+		snack->size++;
+	}
+	snack->gain=0;
 }
