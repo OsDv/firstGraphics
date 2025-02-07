@@ -25,7 +25,7 @@ LIB_PATH = $(RAYLIB_PATH)/src
 SRC = snack.c
 
 # Build flags
-CFLAGS = -Wall -Wextra -I$(INCLUDE_PATH) -std=c99
+CFLAGS = -Wall -Wextra -I$(INCLUDE_PATH) -std=c99 -g
 
 # Default target
 all: $(TARGET)

@@ -74,7 +74,7 @@ int main(){
 					startGame(&snack);
 				} else{
 					// set snack direction
-					if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_LEFT)) snack.step = 0.2;
+					if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_LEFT)) snack.step = 0;
 					else snack.step = 0.4;
 					setDirection(&snack);
 					// move the snack
