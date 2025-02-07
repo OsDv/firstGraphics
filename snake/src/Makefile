@@ -3,14 +3,14 @@ ifeq ($(OS),Windows_NT)
     # Windows
     SYSTEM = Windows
     TARGET = app.exe
-    LDFLAGS = $(LIB_PATH)/libraylib.a -lopengl32 -lgdi32 -lwinmm;
+    LDFLAGS = $(LIB_PATH)/libraylib.a -lopengl32 -lgdi32 -lwinmm
     CLEAN_CMD = $(TARGET)
     RM = del
 else
     # Linux (or other Unix-like systems)
     SYSTEM = Linux
     TARGET = app
-    LDFLAGS = $(LIB_PATH)/libraylib.a -lGL -lm -lpthread -ldl -lrt
+    LDFLAGS = $(LIB_PATH)/linux_libraylib.a -lGL -lm -lpthread -ldl -lrt
     CLEAN_CMD = rm -f $(TARGET)
 endif
 

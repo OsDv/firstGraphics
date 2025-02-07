@@ -6,7 +6,7 @@ static const int screenWidth = 1600;
 static const int screenHeight = 800;
 
 int main(void){
-	InitWindow(screenWidth, screenHeight, "Snake game");
+	InitWindow(screenWidth, screenHeight, "MOFAJIR");
 	InitAudioDevice();
 	SetTargetFPS(60);
 	// InitStartScreen();

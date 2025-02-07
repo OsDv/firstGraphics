@@ -89,7 +89,10 @@ void UpdateGameplayScreen(void)
 					startGame(&snake);
 				} else{
 					// set snack direction
-					if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_LEFT)) snake.step = 0.1f;
+					if ((IsKeyDown(KEY_UP)&& snake.direction=='U') || 
+						(IsKeyDown(KEY_DOWN) && snake.direction=='D' )|| 
+						(IsKeyDown(KEY_RIGHT) && snake.direction=='R' )|| 
+						(IsKeyDown(KEY_LEFT)&& snake.direction=='L'))  snake.step = 0.1f;
 					else snake.step = 0.4;
 					setDirection(&snake);
 					// move the snack

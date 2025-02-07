@@ -1,0 +1,1 @@
+emcc -o game.html  web.c -Os -Wall ../../../raylib/src/libraylib.a -I ../raylib/  -s USE_GLFW=3 --shell-file ../../../raylib/src/minshell.html --preload-file res  -DPLATFORM_WEB
