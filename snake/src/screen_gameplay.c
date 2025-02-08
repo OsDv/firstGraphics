@@ -10,21 +10,27 @@
 #define snake_scale 0.03125f
 #define point_scale 0.03125f
 #define snake_thickness 64
-#define border_thickness 5.0f
+#define border_thickness 15.0f
 #define point_thickness 32
+#define revive_cooldown 0.5f
+#define nbr_skins 2
+#define skin_width 640
 // png 1024x1024 // render size 32x32
 typedef struct {
 	Texture2D blob;
 	Texture2D texHead;
+	int skinHead;
+	Rectangle skinRecHead;
 	int32_t head;
 	int32_t size;
 	int32_t gain;
 	float step;
+	bool alive;
 	int8_t direction;// U:up , D:down , R:right , L:left
 	Color color;
 	Rectangle headBnds;
 	Vector2 position[MAX_SNACK_SIZE];
-	Wave moveWave;
+	Sound dead;
 	Sound moveSound;
 } Snack;
 Snack snake ;
@@ -42,8 +48,8 @@ float dt ;// used for snake movement
 
 int screenW;
 int screenH;
-
-
+Font scoreFont;
+int highScore;
 /*
 	Module functions
 */
@@ -61,8 +67,19 @@ void initGameplayScreen(void){
 	snake.texHead = LoadTexture("res/image.png");
 	// snake.moveWave = LoadWave("res/sound.wav");
 	snake.moveSound = LoadSound("res/music_food.mp3");
+	snake.dead = LoadSound("res/dead.mp3");
 	point.tex = LoadTexture("res/point.png");
-	
+	// load font
+	//
+	scoreFont = LoadFontEx("res/pixantiqua.ttf", 32, 0, 250);
+
+	snake.skinHead =0;
+	snake.skinRecHead = (Rectangle){
+		.height = skin_width,
+		.width = skin_width,
+		.y = 0,
+		.x = 0,
+	};
 	snake.color = RAYWHITE;
 	snake.headBnds = (Rectangle){
 		.height = snake_thickness,
@@ -76,49 +93,63 @@ void initGameplayScreen(void){
 		.height = point_thickness,
 		.width = point_thickness
 	};
-	
+	highScore = 0;
 }
 
 
 void UpdateGameplayScreen(void)
 {
 
+	if (!snake.alive){
+		dt +=GetFrameTime();
+		if (dt>= revive_cooldown)startGame(&snake);
+	} else {
 	// Check for collision
 				if (checkCollision(snake)){
 					// inGame = false;
-					startGame(&snake);
-				} else{
-					// set snack direction
-					if ((IsKeyDown(KEY_UP)&& snake.direction=='U') || 
-						(IsKeyDown(KEY_DOWN) && snake.direction=='D' )|| 
-						(IsKeyDown(KEY_RIGHT) && snake.direction=='R' )|| 
-						(IsKeyDown(KEY_LEFT)&& snake.direction=='L'))  snake.step = 0.1f;
-					else snake.step = 0.4;
-					setDirection(&snake);
-					// move the snack
-					dt += GetFrameTime();
-					if (dt>=snake.step){
-						moveSnack(&snake);
-						// PlaySound(snake.moveSound);
-						dt=0;
-						// update snack size
-						if (snake.head==0){
-							updateSnackSize(&snake);
-
-						}
-						if (!point.ready) generatePoint(&point);
-						else {
-							if(CheckCollisionRecs(point.bounds,snake.headBnds)){
-								point.ready = false;
-								snake.gain++;
-								PlaySound(snake.moveSound);
-
-							}				
-						}
-					
-					}
-
+					PlaySound(snake.dead);
+					if (highScore<snake.size) highScore=snake.size;
+					snake.alive = false;					
+					dt = 0;
+					return;
 				}
+				// No collisiion
+				// set snack direction
+				if ((IsKeyDown(KEY_UP)&& snake.direction=='U') || 
+					(IsKeyDown(KEY_DOWN) && snake.direction=='D' )|| 
+					(IsKeyDown(KEY_RIGHT) && snake.direction=='R' )|| 
+					(IsKeyDown(KEY_LEFT)&& snake.direction=='L'))  snake.step = 0.1f;
+				else snake.step = 0.4;
+				setDirection(&snake);
+				// move the snack
+				dt += GetFrameTime();
+				if (dt>=snake.step){
+					moveSnack(&snake);
+					// PlaySound(snake.moveSound);
+					dt=0;
+					// update snack size
+					if (snake.head==0){
+						updateSnackSize(&snake);
+
+					}
+					if (!point.ready) generatePoint(&point);
+					else {
+						if(CheckCollisionRecs(point.bounds,snake.headBnds)){
+							point.ready = false;
+							snake.gain++;
+							PlaySound(snake.moveSound);
+
+						}				
+					}
+				
+				}
+				// Set skin
+				if (IsKeyPressed(KEY_S)){
+					snake.skinHead= (snake.skinHead+1)%nbr_skins;
+					snake.skinRecHead.x=skin_width*snake.skinHead;
+				}
+
+	}
 }
 
 void DrawGameplayScreen(void)
@@ -138,13 +169,17 @@ void DrawGameplayScreen(void)
 			SNACK_THICKNESS,
 			SNACK_THICKNESS,
 			snack.color);*/
-		if (i==snake.head) DrawTextureEx(snake.texHead,(Vector2){snake.position[i].x,snake.position[i].y},0.0f,0.15f,snake.color);
+		if (i==snake.head) DrawTexturePro(snake.texHead, snake.skinRecHead, snake.headBnds, (Vector2){0.0f,0.0f},0, snake.color); 
 		else DrawTextureEx(snake.blob,(Vector2){snake.position[i].x,snake.position[i].y},0.0f,snake_scale*4,snake.color);
 		
 		
 	}
 	// draw the points
 	if (point.ready) DrawTextureEx(point.tex,(Vector2){point.position.x,point.position.y},0.0f,point_scale,RAYWHITE);
+	// Draw score:
+	DrawTextEx(scoreFont, TextFormat("High Score:%d",highScore), (Vector2){ 30, 30.0f }, (float)scoreFont.baseSize, 2, YELLOW);
+	DrawTextEx(scoreFont, TextFormat("Score:%d",snake.size), (Vector2){ 30, 60.0f }, (float)scoreFont.baseSize, 2, YELLOW);
+
 	DrawFPS(15,15);
 	EndDrawing();
 
@@ -169,6 +204,7 @@ void startGame(Snack *snack){
     snack->head = 0;
     snack->size = 2;
     snack->gain=2;
+    snack->alive = true;
 	snack->step=0.4;
     snack->position[0]=(Vector2) {320,550};
 	snack->position[1]=(Vector2) {320,582};
